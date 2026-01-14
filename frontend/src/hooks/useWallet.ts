@@ -88,8 +88,20 @@ export function useWallet() {
       // Save to localStorage
       localStorage.setItem('wallet_publicKey', publicKey);
 
-      // Check account and balances
-      await refreshBalances(publicKey);
+      // Try to check account and balances, but don't fail if account doesn't exist
+      // (This allows new unfunded accounts to proceed to registration)
+      try {
+        await refreshBalances(publicKey);
+      } catch (error) {
+        console.log('Account not yet funded on testnet, proceeding with connection');
+        // Set default values for unfunded account
+        setState(prev => ({
+          ...prev,
+          usdcBalance: '0',
+          xlmBalance: '0',
+          hasUSDCTrustline: false,
+        }));
+      }
 
       setState(prev => ({
         ...prev,

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useWallet } from '@/hooks/useWallet';
@@ -8,14 +9,59 @@ import { formatAddress } from '@/lib/stellar';
 export default function Navbar() {
   const pathname = usePathname();
   const { isConnected, publicKey, usdcBalance, connect, disconnect, isLoading } = useWallet();
+  const [userRole, setUserRole] = useState<string | null>(null);
 
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/campaigns', label: 'Campaigns' },
-    { href: '/donor', label: 'Donor' },
-    { href: '/ngo', label: 'NGO' },
-    { href: '/admin', label: 'Admin' },
-  ];
+  // Get admin address from environment variable
+  const adminAddress = process.env.NEXT_PUBLIC_ADMIN_ADDRESS;
+  const isAdmin = publicKey === adminAddress;
+
+  useEffect(() => {
+    if (publicKey) {
+      const role = localStorage.getItem(`user_role_${publicKey}`);
+      setUserRole(role);
+    } else {
+      setUserRole(null);
+    }
+  }, [publicKey]);
+
+  // Build navigation links based on role
+  const getNavLinks = () => {
+    const links = [{ href: '/', label: 'Home' }];
+
+    if (!isConnected) {
+      links.push({ href: '/campaigns', label: 'Campaigns' });
+      links.push({ href: '/audit', label: 'Audit' });
+      return links;
+    }
+
+    if (isAdmin) {
+      links.push({ href: '/admin', label: 'Admin Dashboard' });
+      links.push({ href: '/campaigns', label: 'Campaigns' });
+      links.push({ href: '/audit', label: 'Audit' });
+      return links;
+    }
+
+    // For other users, show their specific dashboard
+    if (userRole === 'donor') {
+      links.push({ href: '/donor', label: 'My Dashboard' });
+      links.push({ href: '/campaigns', label: 'Campaigns' });
+    } else if (userRole === 'ngo') {
+      links.push({ href: '/ngo', label: 'My Dashboard' });
+    } else if (userRole === 'beneficiary') {
+      links.push({ href: '/beneficiary', label: 'My Dashboard' });
+    } else if (userRole === 'merchant') {
+      links.push({ href: '/merchant', label: 'My Dashboard' });
+    } else if (userRole?.includes('_pending')) {
+      links.push({ href: '/register/pending', label: 'Application Status' });
+    } else {
+      links.push({ href: '/register', label: 'Register' });
+    }
+
+    links.push({ href: '/audit', label: 'Audit' });
+    return links;
+  };
+
+  const navLinks = getNavLinks();
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -49,6 +95,17 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {isConnected && publicKey ? (
               <>
+                {/* Role Badge */}
+                {isAdmin ? (
+                  <span className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    Admin
+                  </span>
+                ) : userRole && !userRole.includes('_pending') ? (
+                  <span className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 capitalize">
+                    {userRole}
+                  </span>
+                ) : null}
+
                 <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 bg-green-50 rounded-lg">
                   <span className="text-sm font-medium text-green-700">
                     {parseFloat(usdcBalance).toFixed(2)} USDC

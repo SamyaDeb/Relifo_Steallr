@@ -26,13 +26,42 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes will be added here
+// API routes
+const campaignsRouter = require('./routes/campaigns');
+const merchantsRouter = require('./routes/merchants');
+const beneficiariesRouter = require('./routes/beneficiaries');
+const transactionsRouter = require('./routes/transactions');
+const applicationsRouter = require('./routes/applications');
+const donationsRouter = require('./routes/donations');
+const adminRouter = require('./routes/admin');
+const ngoRouter = require('./routes/ngo');
+const beneficiaryRouter = require('./routes/beneficiary');
+const merchantRouter = require('./routes/merchant');
+
+app.use('/api/campaigns', campaignsRouter);
+app.use('/api/merchants', merchantsRouter);
+app.use('/api/beneficiaries', beneficiariesRouter);
+app.use('/api/transactions', transactionsRouter);
+app.use('/api/applications', applicationsRouter);
+app.use('/api/donations', donationsRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/ngo', ngoRouter);
+app.use('/api/beneficiary', beneficiaryRouter);
+app.use('/api/merchant', merchantRouter);
+
+// API test route
 app.get('/api/test', (req, res) => {
   res.json({
     message: 'Relifo Backend API is running',
     database: 'relifo_testnet',
     storage: 'GridFS',
-    phase: 0
+    phase: 0,
+    endpoints: {
+      campaigns: 'GET /api/campaigns',
+      merchants: 'GET /api/merchants',
+      beneficiaries: 'GET /api/beneficiaries',
+      transactions: 'GET /api/transactions'
+    }
   });
 });
 
@@ -49,7 +78,11 @@ app.use((err, req, res, next) => {
 async function startServer() {
   try {
     // Connect to MongoDB
-    await connectToDatabase();
+    const { db, gridFSBucket } = await connectToDatabase();
+    
+    // Store db connection and GridFS bucket in app.locals for routes to access
+    app.locals.db = db;
+    app.locals.gridFSBucket = gridFSBucket;
     
     app.listen(PORT, () => {
       console.log('\n🚀 Relifo Backend Server Started');

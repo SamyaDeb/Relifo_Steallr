@@ -56,8 +56,11 @@ export async function getAccountBalances(publicKey: string): Promise<StellarSdk.
   try {
     const account = await horizonServer.loadAccount(publicKey);
     return account.balances;
-  } catch (error) {
-    console.error('Error loading account:', error);
+  } catch (error: any) {
+    // Don't log error for 404 (account not found) - this is expected for new accounts
+    if (error?.response?.status !== 404) {
+      console.error('Error loading account:', error);
+    }
     return [];
   }
 }

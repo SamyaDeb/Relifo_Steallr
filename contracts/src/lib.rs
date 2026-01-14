@@ -14,22 +14,28 @@
 mod error;
 mod event;
 mod token;
-mod vault;
-mod ngo;
-mod beneficiary;
-mod merchant;
-
-// Export error types
 pub use error::Error;
-
-// Export event types and functions
 pub use event::*;
-
-// Export token utilities
 pub use token::{TokenClient, to_display_amount, from_display_amount};
 
-// Export main contracts
+// Build feature flags to compile one contract at a time
+// Default: ReliefVault
+#[cfg(not(any(feature = "ngo", feature = "beneficiary", feature = "merchant")))]
+mod vault;
+#[cfg(not(any(feature = "ngo", feature = "beneficiary", feature = "merchant")))]
 pub use vault::{ReliefVault, Campaign, BeneficiaryAllocation, SpendingAuthorization};
+
+#[cfg(feature = "ngo")]
+mod ngo;
+#[cfg(feature = "ngo")]
 pub use ngo::{NGORegistry, NGOInfo, NGOStatus};
+
+#[cfg(feature = "beneficiary")]
+mod beneficiary;
+#[cfg(feature = "beneficiary")]
 pub use beneficiary::{BeneficiaryRegistry, BeneficiaryInfo, BeneficiaryStatus, CategoryLimit};
+
+#[cfg(feature = "merchant")]
+mod merchant;
+#[cfg(feature = "merchant")]
 pub use merchant::{MerchantRegistry, MerchantInfo, MerchantStatus};
