@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+*.lock
+yarn.lock
+package-lock.json
+
+# Environment variables
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+target/
+
+# Rust
+Cargo.lock
+/contracts/target/
+
+# Frontend
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+
+# Backend
+backend/node_modules/
+backend/.env.local
+
+# MongoDB
+*.bak
+mongo_backup/
+
+# Temporary files
+*.tmp
+.tmp/
